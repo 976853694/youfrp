@@ -171,7 +171,8 @@ func CheckProxy(apiurl string, user string, pxyConf v1.ProxyConfigurer, pMsg *ms
 	}
 	outboundWithKB := strconv.Itoa(msg.Outbound) + "KB"
 	// fmt.Println("本代理限速",outboundWithKB,msg.Outbound)
-	pxyConf.GetBaseConfig().Transport.BandwidthLimitMode = "client"
+	// 设置带宽限制模式为服务器端限制
+	pxyConf.GetBaseConfig().Transport.BandwidthLimitMode = "server"
 	bandwidthLimit, err := types.NewBandwidthQuantity(outboundWithKB)
 	if err != nil {
 		fmt.Println("Failed to create bandwidth limit:", err)
