@@ -76,7 +76,15 @@ type Response struct {
 	Message string `json:"message"`
 }
 
-type Message struct {
+// API 返回的限速信息结构体 (sakurafrp 格式) - 字符串版本
+type LimitInfoStr struct {
+	Inbound  string `json:"inbound"`
+	Outbound string `json:"outbound"`
+	Type     int    `json:"type"`
+}
+
+// API 返回的限速信息结构体 (sakurafrp 格式) - 整数版本
+type LimitInfoInt struct {
 	Inbound  int `json:"inbound"`
 	Outbound int `json:"outbound"`
 	Type     int `json:"type"`
@@ -154,32 +162,94 @@ func CheckProxy(apiurl string, user string, pxyConf v1.ProxyConfigurer, pMsg *ms
 		return false, err
 	}
 
-	// 解析 message 字段
-	var msg Message
-	err = json.Unmarshal([]byte(response.Message), &msg)
-	if err != nil {
-		fmt.Println("CheckProxy decode_message Error:", resp, err)
-		return false, err
+	// 解析 message 字段中的限速信息（这是一个 JSON 字符串，需要二次解析）
+	// 首先尝试解析为字符串格式
+	var limitInfoStr LimitInfoStr
+	err = json.Unmarshal([]byte(response.Message), &limitInfoStr)
+	if err == nil {
+		// 成功解析为字符串格式
+		fmt.Printf("解析到的限速信息(字符串格式): Status=%d, Inbound=%s, Outbound=%s, Type=%d\n", response.Status, limitInfoStr.Inbound, limitInfoStr.Outbound, limitInfoStr.Type)
+		
+		// 转换字符串为整数
+		inboundInt := 0
+		outboundInt := 0
+		
+		if limitInfoStr.Inbound != "" {
+			inboundInt, err = strconv.Atoi(limitInfoStr.Inbound)
+			if err != nil {
+				fmt.Println("Failed to convert inbound to integer:", err)
+				inboundInt = 0
+			}
+		}
+		
+		if limitInfoStr.Outbound != "" {
+			outboundInt, err = strconv.Atoi(limitInfoStr.Outbound)
+			if err != nil {
+				fmt.Println("Failed to convert outbound to integer:", err)
+				outboundInt = 0
+			}
+		}
+		
+		fmt.Printf("John_San_解析到的限速信息: 入站=%d KB, 出站=%d KB\n", inboundInt, outboundInt)
+		
+		// 设置带宽限制模式为服务器端限制
+		pxyConf.GetBaseConfig().Transport.BandwidthLimitMode = "server"
+		
+		// 设置出站带宽限制
+		if outboundInt > 0 {
+			outboundWithKB := strconv.Itoa(outboundInt) + "KB"
+			bandwidthLimit, err := types.NewBandwidthQuantity(outboundWithKB)
+			if err != nil {
+				fmt.Println("Failed to create outbound bandwidth limit:", err)
+				return false, err
+			}
+			pxyConf.GetBaseConfig().Transport.BandwidthLimit = bandwidthLimit
+			fmt.Println("John_San_设置出站限速:", pxyConf.GetBaseConfig().Transport.BandwidthLimit)
+		} else {
+			// 如果出站限制为0或负数，则不设置限制
+			fmt.Println("John_San_出站不限速")
+		}
+		
+		// 注意：FRP标准实现出站限速，入站限速需要额外实现
+		if inboundInt > 0 {
+			fmt.Printf("John_San_注意：入站限速(%d KB)已指定，但FRP标准实现暂不支持\n", inboundInt)
+		}
+	} else {
+		// 如果字符串格式解析失败，尝试解析为整数格式
+		var limitInfoInt LimitInfoInt
+		err = json.Unmarshal([]byte(response.Message), &limitInfoInt)
+		if err != nil {
+			fmt.Println("CheckProxy decode_message Error:", resp, err)
+			return false, err
+		}
+		
+		fmt.Printf("解析到的限速信息(整数格式): Status=%d, Inbound=%d, Outbound=%d, Type=%d\n", response.Status, limitInfoInt.Inbound, limitInfoInt.Outbound, limitInfoInt.Type)
+		
+		fmt.Printf("John_San_解析到的限速信息: 入站=%d KB, 出站=%d KB\n", limitInfoInt.Inbound, limitInfoInt.Outbound)
+		
+		// 设置带宽限制模式为服务器端限制
+		pxyConf.GetBaseConfig().Transport.BandwidthLimitMode = "server"
+		
+		// 设置出站带宽限制
+		if limitInfoInt.Outbound > 0 {
+			outboundWithKB := strconv.Itoa(limitInfoInt.Outbound) + "KB"
+			bandwidthLimit, err := types.NewBandwidthQuantity(outboundWithKB)
+			if err != nil {
+				fmt.Println("Failed to create outbound bandwidth limit:", err)
+				return false, err
+			}
+			pxyConf.GetBaseConfig().Transport.BandwidthLimit = bandwidthLimit
+			fmt.Println("John_San_设置出站限速:", pxyConf.GetBaseConfig().Transport.BandwidthLimit)
+		} else {
+			// 如果出站限制为0或负数，则不设置限制
+			fmt.Println("John_San_出站不限速")
+		}
+		
+		// 注意：FRP标准实现出站限速，入站限速需要额外实现
+		if limitInfoInt.Inbound > 0 {
+			fmt.Printf("John_San_注意：入站限速(%d KB)已指定，但FRP标准实现暂不支持\n", limitInfoInt.Inbound)
+		}
 	}
-	// fmt.Printf("Status: %d\n", response.Status)
-	// fmt.Printf("Success: %t\n", response.Success)
-	// fmt.Printf("Inbound: %d\n", msg.Inbound)
-	// fmt.Printf("Outbound: %d\n", msg.Outbound)
-	// fmt.Printf("Type: %d\n", msg.Type)
-	if msg.Outbound <= 0 {
-		return false, nil
-	}
-	outboundWithKB := strconv.Itoa(msg.Outbound) + "KB"
-	// fmt.Println("本代理限速",outboundWithKB,msg.Outbound)
-	// 设置带宽限制模式为服务器端限制
-	pxyConf.GetBaseConfig().Transport.BandwidthLimitMode = "server"
-	bandwidthLimit, err := types.NewBandwidthQuantity(outboundWithKB)
-	if err != nil {
-		fmt.Println("Failed to create bandwidth limit:", err)
-		return false, err
-	}
-	pxyConf.GetBaseConfig().Transport.BandwidthLimit = bandwidthLimit
-	fmt.Println("John_San_检查代理这里可以最终限速:", pxyConf.GetBaseConfig().Transport.BandwidthLimit)
 
 	return true, nil
 }
