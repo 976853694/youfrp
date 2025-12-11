@@ -1,0 +1,49 @@
+# FRP Server Configuration with John_San API Support
+bindAddr = "0.0.0.0"
+bindPort = 7000
+
+# KCP and QUIC configuration
+kcpBindPort = 7000
+quicBindPort = 7002
+
+# HTTP and HTTPS virtual host configuration
+vhostHTTPPort = 81
+vhostHTTPSPort = 443
+
+# TCPMUX configuration
+tcpmuxHTTPConnectPort = 1337
+
+# Authentication configuration
+auth.token = "ChhChongGouToken"
+
+# Web management interface
+webServer.addr = "0.0.0.0"
+webServer.port = 7500
+webServer.user = "admin"
+webServer.password = "tgx123456"
+
+# John_San API configuration
+John_San_Api = "http://frp.gmns.top/api/"
+john_san_token = "ChhChongGouToken|1"
+
+# Logging configuration
+log.to = "./frps.log"
+log.level = "info"
+log.maxDays = 3
+
+# Other configurations
+transport.maxPoolCount = 5
+transport.tls.force = false
+detailedErrorsToClient = true
+udpPacketSize = 1500
+natholeAnalysisDataReserveHours = 168
+
+# Allow ports range
+allowPorts = [
+  { start = 8000, end = 9000 },
+  { single = 9001 },
+  { start = 10000, end = 50000 }
+]
+
+# Maximum ports per client
+maxPortsPerClient = 0
