@@ -1,0 +1,5 @@
+go run localize_assets.go -source wwww.zone.id -output localized -timeout 15
+
+
+
+ps aux | grep frps
