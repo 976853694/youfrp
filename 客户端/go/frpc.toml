@@ -1,0 +1,36 @@
+serverAddr = "23.247.131.63"
+serverPort = 7000
+transport.tcpMux = true
+transport.protocol = "tcp"
+auth.method = "token"
+auth.token = "ChhChongGouToken"
+user = "d067e361bbc79914"
+dnsServer = "114.114.114.114"
+
+[[proxies]]
+name = "btmb"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 8081
+remotePort = 8080
+transport.useEncryption = true
+transport.useCompression = true
+
+[[proxies]]
+name = "kimi"
+type = "http"
+localIP = "127.0.0.1"
+localPort = 80
+customDomains = ["hh.gmns.top"]
+transport.useEncryption = true
+transport.useCompression = false
+
+[[proxies]]
+name = "fnos"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 5666
+remotePort = 5666
+transport.useEncryption = true
+transport.useCompression = true
+

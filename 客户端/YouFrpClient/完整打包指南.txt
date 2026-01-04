@@ -1,0 +1,186 @@
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║         南溪FRP客户端 - 完整打包和运行指南                    ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+【方案一：自动化打包（推荐）】
+
+第一步：安装.NET环境
+─────────────────────────────────────────────────────
+  双击运行：安装.NET并打包运行.bat
+  
+  脚本会自动：
+  ✓ 检查.NET环境
+  ✓ 如果未安装，自动打开下载页面
+  ✓ 如果已安装，自动编译打包
+  ✓ 完成后提示打开发布目录
+
+
+第二步：下载frpc.exe
+─────────────────────────────────────────────────────
+  双击运行：下载frpc.bat
+  
+  脚本会自动打开FRP下载页面
+  下载文件：frp_x.xx.x_windows_amd64.zip
+  解压后将 frpc.exe 复制到发布目录
+
+
+第三步：运行程序
+─────────────────────────────────────────────────────
+  进入目录：bin\Release\net6.0-windows\win-x64\publish\
+  
+  双击运行：南溪FRP.exe
+
+
+
+【方案二：手动打包】
+
+如果您熟悉命令行，可以手动执行：
+
+1. 安装.NET 6.0 SDK
+   ─────────────────────────────────────────────────────
+   访问：https://dotnet.microsoft.com/download/dotnet/6.0
+   下载并安装 ".NET 6.0 SDK" (Windows x64)
+   安装完成后重启命令提示符
+
+
+2. 编译项目
+   ─────────────────────────────────────────────────────
+   打开命令提示符，进入项目目录：
+   cd "E:\源码\内网穿透\FrpClient"
+   
+   执行编译：
+   dotnet build -c Release
+
+
+3. 发布独立程序
+   ─────────────────────────────────────────────────────
+   执行发布命令：
+   dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true
+   
+   等待完成...（约2-5分钟）
+
+
+4. 获取可执行文件
+   ─────────────────────────────────────────────────────
+   发布位置：bin\Release\net6.0-windows\win-x64\publish\
+   主程序：南溪FRP.exe
+   大小：约60-80MB
+
+
+5. 部署运行
+   ─────────────────────────────────────────────────────
+   将整个 publish 文件夹复制到目标电脑
+   下载 frpc.exe 放入该文件夹
+   双击 南溪FRP.exe 运行
+
+
+
+【发布目录结构】
+
+publish/
+├── 南溪FRP.exe          ← 主程序
+├── frpc.exe             ← 需要自己下载放入
+└── [其他.NET运行时文件]
+
+
+
+【frpc.exe 下载地址】
+
+官方地址：
+https://github.com/fatedier/frp/releases
+
+国内镜像（如果GitHub慢）：
+https://ghproxy.com/https://github.com/fatedier/frp/releases
+
+下载文件示例：
+frp_0.65.0_windows_amd64.zip
+
+解压后的文件：
+frpc.exe          ← 需要这个文件
+frps.exe
+frpc.toml
+frps.toml
+...
+
+
+
+【运行前检查清单】
+
+□ 已安装 .NET 6.0 SDK
+□ 已编译发布程序
+□ 已下载 frpc.exe
+□ frpc.exe 已放入 publish 目录
+□ 有可用的访问Token
+□ 网络连接正常
+
+
+
+【首次运行步骤】
+
+1. 双击 南溪FRP.exe
+2. 输入访问Token（向管理员申请）
+3. 勾选"自动登录"（可选）
+4. 点击"Token登录"
+5. 选择节点
+6. 点击"启动"按钮
+7. 查看日志确认连接
+
+
+
+【常见问题】
+
+Q1: 提示"找不到.NET运行时"
+A1: 重新运行发布命令，确保使用了 --self-contained true 参数
+
+Q2: 提示"找不到frpc.exe"
+A2: 确保frpc.exe与南溪FRP.exe在同一目录
+
+Q3: 编译时提示缺少依赖包
+A3: 执行 dotnet restore 恢复依赖包
+
+Q4: 发布文件太大
+A4: 这是正常的，因为包含了完整的.NET运行时，可以在没有.NET的电脑上运行
+
+Q5: 想要更小的文件
+A5: 可以不使用 --self-contained，但目标电脑需要安装.NET 6.0 Runtime
+
+
+
+【优化建议】
+
+► 减小发布体积
+  使用框架依赖模式（需要目标电脑安装.NET）：
+  dotnet publish -c Release -r win-x64 --self-contained false
+
+► 压缩发布文件
+  使用 ReadyToRun 编译：
+  dotnet publish -c Release -r win-x64 /p:PublishReadyToRun=true
+
+► 单文件发布
+  所有文件打包为一个exe（已使用）：
+  /p:PublishSingleFile=true
+
+
+
+【部署到其他电脑】
+
+方式1：独立部署（推荐）
+  ✓ 复制整个 publish 文件夹
+  ✓ 放入 frpc.exe
+  ✓ 直接运行，无需安装.NET
+
+方式2：精简部署
+  ✓ 目标电脑安装 .NET 6.0 Desktop Runtime
+  ✓ 使用非自包含模式发布
+  ✓ 文件更小（约5-10MB）
+
+
+
+═══════════════════════════════════════════════════════════════
+
+           需要帮助？查看 README.md 获取详细文档
+
+═══════════════════════════════════════════════════════════════
