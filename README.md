@@ -2,3 +2,4 @@ youfrp内网穿透面板
 美化了页面，加了套餐购买，实名认证等等功能
 二开作者QQ：2014131458
 更新了youfrp0.60.0意思就是支持0.60.0版本的frp了
+首页这里搬的https://github.com/TechCat-Team/ChmlFrp-Frontend/感谢这个大佬吧
